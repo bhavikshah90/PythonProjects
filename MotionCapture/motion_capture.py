@@ -1,5 +1,7 @@
 import cv2, time, pandas
 from datetime import datetime
+from bokeh.plotting import figure
+from bokeh.io import output_file,show
 
 first_frame = None # variable to store first frame to capture start time
 video = cv2.VideoCapture(0)
@@ -31,11 +33,13 @@ while True:
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),3)
 
     status_list.append(status)
+    status_list = status_list[-2:]  # to avoid memory leakage problem because we just need to store last two status to track time
 
     if status_list[-1] == 1 and status_list[-2] == 0:
         time_now.append(datetime.now())
     if status_list[-1] == 0 and status_list[-2] == 1:
         time_now.append(datetime.now())
+
     cv2.imshow("currently capturing ",gray_img)
     cv2.imshow("diff_frame",diff_frame)
     cv2.imshow("threshold", threshold_frame)
@@ -46,7 +50,7 @@ while True:
         if status == 1:
             time_now.append(datetime.now())
         break
-# print(time_now)
+
 for times in range(0,len(time_now),2):
     df=df.append({"Start":time_now[times],"End":time_now[times+1]},ignore_index=True)
 df.to_csv("TimeTracker.csv")
